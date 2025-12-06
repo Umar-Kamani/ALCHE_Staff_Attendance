@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { User, Employee, AttendanceRecord, ParkingConfig } from '../App';
-import { LogOut, Car, Users, ParkingSquare, UserPlus } from 'lucide-react';
+import { LogOut, Car, Users, ParkingSquare, UserPlus, Building2 } from 'lucide-react';
 import { AttendanceForm } from './AttendanceForm';
 import { ParkingMonitor } from './ParkingMonitor';
 import { TodayAttendanceList } from './TodayAttendanceList';
@@ -57,7 +57,19 @@ export function SecurityGuardDashboard({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center gap-4">
+              <div className="bg-[#002E6D] p-3 rounded-lg">
+                <Building2 className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-gray-600">On Campus</p>
+                <p className="text-gray-900">{activeStaff.filter(r => !r.isGuest).length}</p>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center gap-4">
               <div className="bg-green-100 p-3 rounded-lg">

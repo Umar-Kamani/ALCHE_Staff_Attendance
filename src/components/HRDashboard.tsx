@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { User, Employee, AttendanceRecord, ParkingConfig } from '../App';
-import { LogOut, UserPlus, Download, Calendar, Filter } from 'lucide-react';
+import { LogOut, UserPlus, Download, Calendar, Filter, Building2 } from 'lucide-react';
 import { EmployeeManagement } from './EmployeeManagement';
 import { AttendanceReports } from './AttendanceReports';
 import logo from 'figma:asset/8cb4e74c943326f982bc5bf90d14623946c7755b.png';
@@ -86,6 +86,10 @@ export function HRDashboard({
       alert('Please select both start and end dates');
     }
   };
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayRecords = attendanceRecords.filter(r => r.date === today);
+  const activeStaff = todayRecords.filter(r => r.timeOut === null && !r.isGuest);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -175,7 +179,15 @@ export function HRDashboard({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className="flex items-center gap-3 mb-1">
+              <Building2 className="w-5 h-5 text-[#002E6D]" />
+              <p className="text-gray-600">On Campus</p>
+            </div>
+            <p className="text-gray-900">{activeStaff.length}</p>
+          </div>
+
           <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <p className="text-gray-600 mb-1">Total Employees</p>
             <p className="text-gray-900">{employees.length}</p>

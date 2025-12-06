@@ -1,7 +1,4 @@
-version: "3.8"
-
 services:
-
   postgres:
     image: postgres:15-alpine
     container_name: employee-postgres
@@ -14,6 +11,8 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - web
 
   backend:
     build: ./backend
@@ -30,15 +29,29 @@ services:
       - postgres
     ports:
       - "5000:5000"
+    networks:
+      - web
 
   frontend:
     build: .
     container_name: employee-frontend
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "3001:3001"
     depends_on:
       - backend
-
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-alche-staff-attendance.rule=Host(`attendance.alu.app`)"
+      - "traefik.http.routers.frontend-alche-staff-attendance.service=frontend-alche-staff-attendance"
+      - "traefik.http.routers.frontend-alche-staff-attendance.tls=true"
+      - "traefik.http.routers.frontend-alche-staff-attendance.entrypoints=web,websecure"
+      - "traefik.http.routers.frontend-alche-staff-attendance.tls.certresolver=le"
+    networks:
+      - web
 volumes:
   pgdata:
+networks: #using the traefk default network
+  web:
+    name: dockertraefk_default
+    external: true

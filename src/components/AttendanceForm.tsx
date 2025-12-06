@@ -26,6 +26,8 @@ export function AttendanceForm({
   const [hasCar, setHasCar] = useState(false);
   const [overridePlate, setOverridePlate] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
   const todayRecords = attendanceRecords.filter(r => r.date === today);
@@ -72,24 +74,15 @@ export function AttendanceForm({
     const employee = employees.find(e => e.id === selectedEmployee);
     if (!employee) return;
 
-    // Check if already marked entry today
+    // Check if there's an existing record for today
     const existingRecord = todayRecords.find(
       r => r.employeeId === employee.id && !r.isGuest
     );
 
-    if (existingRecord && existingRecord.timeOut === null) {
-      setMessage({ type: 'error', text: 'Employee already checked in today' });
-      return;
-    }
-
-    if (existingRecord && existingRecord.timeOut !== null) {
-      setMessage({ type: 'error', text: 'Employee already completed attendance for today' });
-      return;
-    }
-
-    // Check parking availability
+    // Check parking availability (only if bringing a car and no existing record with car)
     if (hasCar && plateNumber) {
-      if (parkingConfig.occupiedSpaces >= parkingConfig.totalSpaces) {
+      const needsNewParkingSpace = !existingRecord || !existingRecord.plateNumber;
+      if (needsNewParkingSpace && parkingConfig.occupiedSpaces >= parkingConfig.totalSpaces) {
         setMessage({ type: 'error', text: 'No parking spaces available' });
         return;
       }
@@ -98,29 +91,54 @@ export function AttendanceForm({
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', { hour12: false });
 
-    const record: AttendanceRecord = {
-      id: `${employee.id}-${Date.now()}`,
-      employeeId: employee.id,
-      employeeName: employee.name,
-      date: today,
-      timeIn: timeString,
-      timeOut: null,
-      plateNumber: hasCar && plateNumber ? plateNumber : null,
-      isGuest: false,
-    };
+    if (existingRecord) {
+      // Employee already has a record for today - just update timeOut to null (re-entry)
+      const updatedRecord: AttendanceRecord = {
+        ...existingRecord,
+        timeOut: null,
+        // Update plate number if changed
+        plateNumber: hasCar && plateNumber ? plateNumber : existingRecord.plateNumber,
+      };
 
-    onUpdateAttendance(record);
+      onUpdateAttendance(updatedRecord);
 
-    // Update parking
-    if (hasCar && plateNumber) {
-      onUpdateParkingConfig({
-        ...parkingConfig,
-        occupiedSpaces: parkingConfig.occupiedSpaces + 1,
-      });
+      // Update parking if car status changed
+      if (hasCar && plateNumber && !existingRecord.plateNumber) {
+        onUpdateParkingConfig({
+          ...parkingConfig,
+          occupiedSpaces: parkingConfig.occupiedSpaces + 1,
+        });
+      }
+
+      setMessage({ type: 'success', text: `Re-entry marked for ${employee.name}` });
+    } else {
+      // First entry of the day - create new record
+      const record: AttendanceRecord = {
+        id: `${employee.id}-${Date.now()}`,
+        employeeId: employee.id,
+        employeeName: employee.name,
+        date: today,
+        timeIn: timeString,
+        timeOut: null,
+        plateNumber: hasCar && plateNumber ? plateNumber : null,
+        isGuest: false,
+      };
+
+      onUpdateAttendance(record);
+
+      // Update parking
+      if (hasCar && plateNumber) {
+        onUpdateParkingConfig({
+          ...parkingConfig,
+          occupiedSpaces: parkingConfig.occupiedSpaces + 1,
+        });
+      }
+
+      setMessage({ type: 'success', text: `Entry marked for ${employee.name}` });
     }
 
-    setMessage({ type: 'success', text: `Entry marked for ${employee.name}` });
     setSelectedEmployee('');
+    setSearchTerm('');
     setPlateNumber('');
     setHasCar(false);
   };
@@ -163,6 +181,7 @@ export function AttendanceForm({
 
     setMessage({ type: 'success', text: `Exit marked for ${employee.name}` });
     setSelectedEmployee('');
+    setSearchTerm('');
   };
 
   const handleGuestEntry = () => {
@@ -249,6 +268,23 @@ export function AttendanceForm({
     setSelectedGuest('');
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setShowDropdown(true);
+    setSelectedEmployee('');
+  };
+
+  const handleEmployeeSelect = (employee: Employee) => {
+    handleEmployeeChange(employee.id);
+    setSearchTerm(employee.name);
+    setShowDropdown(false);
+  };
+
+  const filteredEmployees = employees.filter(emp =>
+    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {type === 'guest' ? (
@@ -294,20 +330,30 @@ export function AttendanceForm({
           <label htmlFor="employee" className="block text-gray-700 mb-2">
             Select Employee
           </label>
-          <select
-            id="employee"
-            value={selectedEmployee}
-            onChange={(e) => handleEmployeeChange(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          >
-            <option value="">Choose an employee...</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.name} ({emp.employeeId}) {emp.defaultPlateNumber ? `- ${emp.defaultPlateNumber}` : ''}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <input
+              type="text"
+              id="employee"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Choose an employee..."
+              required
+            />
+            {showDropdown && filteredEmployees.length > 0 && (
+              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b-lg shadow-lg max-h-40 overflow-y-auto">
+                {filteredEmployees.map((emp) => (
+                  <div
+                    key={emp.id}
+                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleEmployeeSelect(emp)}
+                  >
+                    {emp.name} ({emp.employeeId}) {emp.defaultPlateNumber ? `- ${emp.defaultPlateNumber}` : ''}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

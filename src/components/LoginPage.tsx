@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User } from '../App';
+import { User, APP_VERSION } from '../App';
 import { ShieldCheck, LogIn } from 'lucide-react';
 import logo from 'figma:asset/8cb4e74c943326f982bc5bf90d14623946c7755b.png';
 
@@ -34,6 +34,7 @@ export function LoginPage({ onLogin, users }: LoginPageProps) {
         <div className="flex flex-col items-center mb-8">
           <img src={logo} alt="VUCUE African Leadership College" className="h-20 mb-4" />
           <p className="text-center text-gray-600">Attendance & Vehicle Tracking System</p>
+          <p className="text-center text-gray-400 mt-1">v{APP_VERSION}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -82,6 +83,21 @@ export function LoginPage({ onLogin, users }: LoginPageProps) {
           </button>
         </form>
 
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <p className="text-gray-600 mb-2">Demo Credentials:</p>
+          <div className="space-y-1">
+            <p className="text-gray-700">Super Admin: admin / admin123</p>
+            <p className="text-gray-700">Security: security / security123</p>
+            <p className="text-gray-700">HR: hr / hr123</p>
+            <p className="text-gray-700">Dean: dean / dean123</p>
+          </div>
+        </div>
+
+        {/* Credits */}
+        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+          <p className="text-gray-600">Made by ALCHE Tech Team</p>
+          <p className="text-gray-500">Collaborators: Joel Salomon, Umar Kamani</p>
+        </div>
       </div>
     </div>
   );

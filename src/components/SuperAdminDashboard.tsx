@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { User, Employee, AttendanceRecord, ParkingConfig } from '../App';
-import { LogOut, Shield, Users, Key, UserPlus, Trash2, Calendar } from 'lucide-react';
+import { User, Employee, AttendanceRecord, ParkingConfig, AccessLog, APP_VERSION } from '../App';
+import { LogOut, Shield, Users, Key, UserPlus, Trash2, Calendar, Activity } from 'lucide-react';
+import { AccessLogs } from './AccessLogs';
 import logo from 'figma:asset/8cb4e74c943326f982bc5bf90d14623946c7755b.png';
 
 interface SuperAdminDashboardProps {
@@ -9,6 +10,7 @@ interface SuperAdminDashboardProps {
   employees: Employee[];
   attendanceRecords: AttendanceRecord[];
   parkingConfig: ParkingConfig;
+  accessLogs: AccessLog[];
   onLogout: () => void;
   onAddUser: (user: User) => void;
   onUpdateUser: (user: User) => void;
@@ -21,11 +23,13 @@ export function SuperAdminDashboard({
   employees,
   attendanceRecords,
   parkingConfig,
+  accessLogs,
   onLogout,
   onAddUser,
   onUpdateUser,
   onDeleteUser,
 }: SuperAdminDashboardProps) {
+  const [activeTab, setActiveTab] = useState<'users' | 'logs'>('users');
   const [showCreateUserForm, setShowCreateUserForm] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [selectedUserForReset, setSelectedUserForReset] = useState<User | null>(null);
@@ -33,7 +37,7 @@ export function SuperAdminDashboard({
   // Create user form
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'security' | 'hr'>('security');
+  const [newRole, setNewRole] = useState<'security' | 'hr' | 'dean'>('security');
   
   // Reset password form
   const [resetPassword, setResetPassword] = useState('');
@@ -111,6 +115,7 @@ export function SuperAdminDashboard({
   const securityUsers = users.filter(u => u.role === 'security');
   const hrUsers = users.filter(u => u.role === 'hr');
   const superAdmins = users.filter(u => u.role === 'superadmin');
+  const deanUsers = users.filter(u => u.role === 'dean');
 
   const today = new Date().toISOString().split('T')[0];
   const todayAttendance = attendanceRecords.filter(r => r.date === today);
@@ -199,226 +204,149 @@ export function SuperAdminDashboard({
           </div>
         </div>
 
-        {/* Create User Button */}
+        {/* Tabs */}
         <div className="mb-6">
-          <button
-            onClick={() => setShowCreateUserForm(!showCreateUserForm)}
-            className="flex items-center gap-2 px-6 py-3 bg-[#002E6D] text-white rounded-lg hover:bg-[#001d45] transition-colors shadow-sm"
-          >
-            <UserPlus className="w-5 h-5" />
-            Create New User
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg hover:bg-[#001d45] transition-colors shadow-sm ${
+                activeTab === 'users' ? 'bg-[#002E6D] text-white' : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              <Users className="w-5 h-5" />
+              User Management
+            </button>
+            <button
+              onClick={() => setActiveTab('logs')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg hover:bg-[#001d45] transition-colors shadow-sm ${
+                activeTab === 'logs' ? 'bg-[#002E6D] text-white' : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              <Activity className="w-5 h-5" />
+              Access Logs
+            </button>
+          </div>
         </div>
 
-        {/* Create User Form */}
-        {showCreateUserForm && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-gray-900 mb-4">Create New User</h2>
-            <form onSubmit={handleCreateUser} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label htmlFor="newUsername" className="block text-gray-700 mb-2">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    id="newUsername"
-                    value={newUsername}
-                    onChange={(e) => setNewUsername(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#002E6D]"
-                    placeholder="Enter username"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="newPassword" className="block text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#002E6D]"
-                    placeholder="Enter password"
-                    minLength={6}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="newRole" className="block text-gray-700 mb-2">
-                    Role
-                  </label>
-                  <select
-                    id="newRole"
-                    value={newRole}
-                    onChange={(e) => setNewRole(e.target.value as 'security' | 'hr')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#002E6D]"
-                  >
-                    <option value="security">Security Guard</option>
-                    <option value="hr">HR</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  className="flex-1 bg-[#002E6D] text-white py-2 rounded-lg hover:bg-[#001d45] transition-colors"
-                >
-                  Create User
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateUserForm(false);
-                    setNewUsername('');
-                    setNewPassword('');
-                  }}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* User Management Tables */}
-        <div className="space-y-6">
-          {/* Super Admins */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="bg-[#002E6D] bg-opacity-5 px-6 py-4 border-b border-gray-200">
-              <h2 className="text-[rgb(255,255,255)] flex items-center gap-2">
-                <Shield className="w-5 h-5 text-[#002E6D]" />
-                Super Administrators
-              </h2>
+        {/* User Management */}
+        {activeTab === 'users' && (
+          <>
+            {/* Create User Button */}
+            <div className="mb-6">
+              <button
+                onClick={() => setShowCreateUserForm(!showCreateUserForm)}
+                className="flex items-center gap-2 px-6 py-3 bg-[#002E6D] text-white rounded-lg hover:bg-[#001d45] transition-colors shadow-sm"
+              >
+                <UserPlus className="w-5 h-5" />
+                Create New User
+              </button>
             </div>
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-gray-700">Username</th>
-                  <th className="px-6 py-3 text-left text-gray-700">Role</th>
-                  <th className="px-6 py-3 text-left text-gray-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {superAdmins.map((u) => (
-                  <tr key={u.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-gray-900">{u.username}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-3 py-1 bg-[#002E6D] bg-opacity-10 text-[rgb(255,255,255)] rounded-full">
-                        Super Admin
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => openResetPasswordModal(u)}
-                        className="flex items-center gap-1 text-[#002E6D] hover:text-[#001d45]"
+
+            {/* Create User Form */}
+            {showCreateUserForm && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 className="text-gray-900 mb-4">Create New User</h2>
+                <form onSubmit={handleCreateUser} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label htmlFor="newUsername" className="block text-gray-700 mb-2">
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        id="newUsername"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#002E6D]"
+                        placeholder="Enter username"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="newPassword" className="block text-gray-700 mb-2">
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#002E6D]"
+                        placeholder="Enter password"
+                        minLength={6}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="newRole" className="block text-gray-700 mb-2">
+                        Role
+                      </label>
+                      <select
+                        id="newRole"
+                        value={newRole}
+                        onChange={(e) => setNewRole(e.target.value as 'security' | 'hr' | 'dean')}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#002E6D]"
                       >
-                        <Key className="w-4 h-4" />
-                        Reset Password
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        <option value="security">Security Guard</option>
+                        <option value="hr">HR</option>
+                        <option value="dean">Dean</option>
+                      </select>
+                    </div>
+                  </div>
 
-          {/* Security Guards */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="bg-[#002E6D] bg-opacity-5 px-6 py-4 border-b border-gray-200">
-              <h2 className="text-[rgb(255,255,255)] flex items-center gap-2">
-                <Shield className="w-5 h-5 text-[#002E6D]" />
-                Security Guards
-              </h2>
-            </div>
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-gray-700">Username</th>
-                  <th className="px-6 py-3 text-left text-gray-700">Role</th>
-                  <th className="px-6 py-3 text-left text-gray-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {securityUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
-                      No security users
-                    </td>
-                  </tr>
-                ) : (
-                  securityUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-900">{u.username}</td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
-                          Security
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => openResetPasswordModal(u)}
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                          >
-                            <Key className="w-4 h-4" />
-                            Reset Password
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(u.id!, u.username)}
-                            className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="flex-1 bg-[#002E6D] text-white py-2 rounded-lg hover:bg-[#001d45] transition-colors"
+                    >
+                      Create User
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCreateUserForm(false);
+                        setNewUsername('');
+                        setNewPassword('');
+                      }}
+                      className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* User Management Tables */}
+            <div className="space-y-6">
+              {/* Super Admins */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-[#002E6D] bg-opacity-5 px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-[rgb(255,255,255)] flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-[#002E6D]" />
+                    Super Administrators
+                  </h2>
+                </div>
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-gray-700">Username</th>
+                      <th className="px-6 py-3 text-left text-gray-700">Role</th>
+                      <th className="px-6 py-3 text-left text-gray-700">Actions</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* HR Users */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="bg-[#BF2C34] bg-opacity-5 px-6 py-4 border-b border-gray-200">
-              <h2 className="text-[rgb(255,255,255)] flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-[#BF2C34]" />
-                HR Users
-              </h2>
-            </div>
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-gray-700">Username</th>
-                  <th className="px-6 py-3 text-left text-gray-700">Role</th>
-                  <th className="px-6 py-3 text-left text-gray-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {hrUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
-                      No HR users
-                    </td>
-                  </tr>
-                ) : (
-                  hrUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-900">{u.username}</td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 bg-[#BF2C34] bg-opacity-10 text-[rgb(255,255,255)] rounded-full">
-                          HR
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-3">
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {superAdmins.map((u) => (
+                      <tr key={u.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-gray-900">{u.username}</td>
+                        <td className="px-6 py-4">
+                          <span className="px-3 py-1 bg-[#002E6D] bg-opacity-10 text-[rgb(255,255,255)] rounded-full">
+                            Super Admin
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
                           <button
                             onClick={() => openResetPasswordModal(u)}
                             className="flex items-center gap-1 text-[#002E6D] hover:text-[#001d45]"
@@ -426,21 +354,197 @@ export function SuperAdminDashboard({
                             <Key className="w-4 h-4" />
                             Reset Password
                           </button>
-                          <button
-                            onClick={() => handleDeleteUser(u.id!, u.username)}
-                            className="flex items-center gap-1 text-[#BF2C34] hover:text-[#8f2127]"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Security Guards */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-[#002E6D] bg-opacity-5 px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-[rgb(255,255,255)] flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-[#002E6D]" />
+                    Security Guards
+                  </h2>
+                </div>
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-gray-700">Username</th>
+                      <th className="px-6 py-3 text-left text-gray-700">Role</th>
+                      <th className="px-6 py-3 text-left text-gray-700">Actions</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {securityUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                          No security users
+                        </td>
+                      </tr>
+                    ) : (
+                      securityUsers.map((u) => (
+                        <tr key={u.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-gray-900">{u.username}</td>
+                          <td className="px-6 py-4">
+                            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
+                              Security
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => openResetPasswordModal(u)}
+                                className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                              >
+                                <Key className="w-4 h-4" />
+                                Reset Password
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(u.id!, u.username)}
+                                className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* HR Users */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-[#BF2C34] bg-opacity-5 px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-[rgb(255,255,255)] flex items-center gap-2">
+                    <UserPlus className="w-5 h-5 text-[#BF2C34]" />
+                    HR Users
+                  </h2>
+                </div>
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-gray-700">Username</th>
+                      <th className="px-6 py-3 text-left text-gray-700">Role</th>
+                      <th className="px-6 py-3 text-left text-gray-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {hrUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                          No HR users
+                        </td>
+                      </tr>
+                    ) : (
+                      hrUsers.map((u) => (
+                        <tr key={u.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-gray-900">{u.username}</td>
+                          <td className="px-6 py-4">
+                            <span className="px-3 py-1 bg-[#BF2C34] bg-opacity-10 text-[rgb(255,255,255)] rounded-full">
+                              HR
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => openResetPasswordModal(u)}
+                                className="flex items-center gap-1 text-[#002E6D] hover:text-[#001d45]"
+                              >
+                                <Key className="w-4 h-4" />
+                                Reset Password
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(u.id!, u.username)}
+                                className="flex items-center gap-1 text-[#BF2C34] hover:text-[#8f2127]"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Dean Users */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-[#FFA500] bg-opacity-5 px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-[rgb(255,255,255)] flex items-center gap-2">
+                    <UserPlus className="w-5 h-5 text-[#FFA500]" />
+                    Dean Users
+                  </h2>
+                </div>
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-gray-700">Username</th>
+                      <th className="px-6 py-3 text-left text-gray-700">Role</th>
+                      <th className="px-6 py-3 text-left text-gray-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {deanUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                          No Dean users
+                        </td>
+                      </tr>
+                    ) : (
+                      deanUsers.map((u) => (
+                        <tr key={u.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-gray-900">{u.username}</td>
+                          <td className="px-6 py-4">
+                            <span className="px-3 py-1 bg-[#FFA500] bg-opacity-10 text-[rgb(255,255,255)] rounded-full">
+                              Dean
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-3">
+                              <button
+                                onClick={() => openResetPasswordModal(u)}
+                                className="flex items-center gap-1 text-[#002E6D] hover:text-[#001d45]"
+                              >
+                                <Key className="w-4 h-4" />
+                                Reset Password
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(u.id!, u.username)}
+                                className="flex items-center gap-1 text-[#FFA500] hover:text-[#FF8C00]"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Access Logs */}
+        {activeTab === 'logs' && (
+          <AccessLogs accessLogs={accessLogs} />
+        )}
+
+        {/* Footer */}
+        <div className="mt-12 pt-6 border-t border-gray-200 text-center text-gray-500">
+          <p>Made by ALCHE Tech Team</p>
+          <p>Collaborators: Joel Salomon, Umar Kamani</p>
+          <p className="mt-2">Version {APP_VERSION}</p>
         </div>
       </div>
 

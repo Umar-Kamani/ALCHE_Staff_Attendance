@@ -3,11 +3,16 @@ import { LoginPage } from './components/LoginPage';
 import { SecurityGuardDashboard } from './components/SecurityGuardDashboard';
 import { HRDashboard } from './components/HRDashboard';
 import { SuperAdminDashboard } from './components/SuperAdminDashboard';
+import { DeanDashboard } from './components/DeanDashboard';
+
+// App version
+export const APP_VERSION = '1.0.0';
 
 export interface Employee {
   id: string;
   name: string;
   employeeId: string;
+  email?: string;
   defaultPlateNumber?: string;
 }
 
@@ -29,9 +34,17 @@ export interface ParkingConfig {
 
 export interface User {
   username: string;
-  role: 'security' | 'hr' | 'superadmin';
+  role: 'security' | 'hr' | 'superadmin' | 'dean';
   password?: string;
   id?: string;
+}
+
+export interface AccessLog {
+  id: string;
+  userId: string;
+  username: string;
+  action: 'login' | 'logout';
+  timestamp: string;
 }
 
 export default function App() {
@@ -40,18 +53,32 @@ export default function App() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [parkingConfig, setParkingConfig] = useState<ParkingConfig>({ totalSpaces: 50, occupiedSpaces: 0 });
+  const [accessLogs, setAccessLogs] = useState<AccessLog[]>([]);
 
   // Initialize default super admin and demo users
   useEffect(() => {
     const savedUsers = localStorage.getItem('users');
     if (savedUsers) {
-      setUsers(JSON.parse(savedUsers));
+      const parsedUsers = JSON.parse(savedUsers);
+      // Check if dean user exists, if not add it
+      const deanExists = parsedUsers.some((u: User) => u.role === 'dean');
+      if (!deanExists) {
+        const updatedUsers = [
+          ...parsedUsers,
+          { id: 'dean-1', username: 'dean', password: 'dean123', role: 'dean' },
+        ];
+        setUsers(updatedUsers);
+        localStorage.setItem('users', JSON.stringify(updatedUsers));
+      } else {
+        setUsers(parsedUsers);
+      }
     } else {
       // Create default super admin and demo users
       const defaultUsers: User[] = [
         { id: 'super-1', username: 'admin', password: 'admin123', role: 'superadmin' },
         { id: 'sec-1', username: 'security', password: 'security123', role: 'security' },
         { id: 'hr-1', username: 'hr', password: 'hr123', role: 'hr' },
+        { id: 'dean-1', username: 'dean', password: 'dean123', role: 'dean' },
       ];
       setUsers(defaultUsers);
       localStorage.setItem('users', JSON.stringify(defaultUsers));
@@ -64,11 +91,13 @@ export default function App() {
     const savedAttendance = localStorage.getItem('attendanceRecords');
     const savedParking = localStorage.getItem('parkingConfig');
     const savedUser = localStorage.getItem('currentUser');
+    const savedAccessLogs = localStorage.getItem('accessLogs');
 
     if (savedEmployees) setEmployees(JSON.parse(savedEmployees));
     if (savedAttendance) setAttendanceRecords(JSON.parse(savedAttendance));
     if (savedParking) setParkingConfig(JSON.parse(savedParking));
     if (savedUser) setCurrentUser(JSON.parse(savedUser));
+    if (savedAccessLogs) setAccessLogs(JSON.parse(savedAccessLogs));
   }, []);
 
   // Save data to localStorage whenever it changes
@@ -96,11 +125,33 @@ export default function App() {
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    localStorage.setItem('accessLogs', JSON.stringify(accessLogs));
+  }, [accessLogs]);
+
   const handleLogin = (user: User) => {
     setCurrentUser(user);
+    const newLog: AccessLog = {
+      id: Date.now().toString(),
+      userId: user.id!,
+      username: user.username,
+      action: 'login',
+      timestamp: new Date().toISOString(),
+    };
+    setAccessLogs([...accessLogs, newLog]);
   };
 
   const handleLogout = () => {
+    if (currentUser) {
+      const newLog: AccessLog = {
+        id: Date.now().toString(),
+        userId: currentUser.id!,
+        username: currentUser.username,
+        action: 'logout',
+        timestamp: new Date().toISOString(),
+      };
+      setAccessLogs([...accessLogs, newLog]);
+    }
     setCurrentUser(null);
   };
 
@@ -155,6 +206,7 @@ export default function App() {
         employees={employees}
         attendanceRecords={attendanceRecords}
         parkingConfig={parkingConfig}
+        accessLogs={accessLogs}
         onLogout={handleLogout}
         onAddUser={addUser}
         onUpdateUser={updateUser}
@@ -173,6 +225,18 @@ export default function App() {
         onLogout={handleLogout}
         onUpdateAttendance={updateAttendance}
         onUpdateParkingConfig={updateParkingConfig}
+      />
+    );
+  }
+
+  if (currentUser.role === 'dean') {
+    return (
+      <DeanDashboard
+        user={currentUser}
+        employees={employees}
+        attendanceRecords={attendanceRecords}
+        parkingConfig={parkingConfig}
+        onLogout={handleLogout}
       />
     );
   }
