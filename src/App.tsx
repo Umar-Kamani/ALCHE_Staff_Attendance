@@ -11,7 +11,6 @@ export const APP_VERSION = '1.0.0';
 export interface Employee {
   id: string;
   name: string;
-  employeeId: string;
   email?: string;
   defaultPlateNumber?: string;
 }
@@ -159,6 +158,14 @@ export default function App() {
     setEmployees([...employees, employee]);
   };
 
+  const deleteEmployee = (employeeId: string) => {
+    setEmployees(employees.filter(e => e.id !== employeeId));
+  };
+
+  const updateEmployee = (updatedEmployee: Employee) => {
+    setEmployees(employees.map(e => e.id === updatedEmployee.id ? updatedEmployee : e));
+  };
+
   const addUser = (user: User) => {
     setUsers([...users, user]);
   };
@@ -187,6 +194,18 @@ export default function App() {
   };
 
   const deleteAttendanceRecord = (id: string) => {
+    // Find the record to check if it has a car in parking
+    const recordToDelete = attendanceRecords.find(r => r.id === id);
+    
+    // If the record has a plate number and hasn't exited (timeOut is null), 
+    // we need to free up the parking space
+    if (recordToDelete && recordToDelete.plateNumber && recordToDelete.timeOut === null) {
+      setParkingConfig({
+        ...parkingConfig,
+        occupiedSpaces: Math.max(0, parkingConfig.occupiedSpaces - 1),
+      });
+    }
+    
     setAttendanceRecords(attendanceRecords.filter(r => r.id !== id));
   };
 
@@ -249,6 +268,8 @@ export default function App() {
       parkingConfig={parkingConfig}
       onLogout={handleLogout}
       onAddEmployee={addEmployee}
+      onDeleteEmployee={deleteEmployee}
+      onUpdateEmployee={updateEmployee}
       onUpdateAttendance={updateAttendance}
       onDeleteAttendance={deleteAttendanceRecord}
     />

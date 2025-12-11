@@ -87,11 +87,29 @@ export function DeanDashboard({
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          {/* Mobile layout */}
+          <div className="sm:hidden space-y-3">
+            <div className="flex items-center justify-between">
               <img src={logo} alt="VUCUE" className="h-10" />
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+            <div>
+              <h1 className="text-gray-900 text-center text-[24px] font-bold">Dean Dashboard</h1>
+              <p className="text-gray-600 text-center">Welcome, {user.username}</p>
+            </div>
+          </div>
+          
+          {/* Desktop layout */}
+          <div className="hidden sm:flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="VUCUE" className="h-12" />
               <div>
-                <h1 className="text-[#002E6D]">Dean Analytics Dashboard</h1>
+                <h1 className="text-gray-900">Dean Dashboard</h1>
                 <p className="text-gray-600">Welcome, {user.username}</p>
               </div>
             </div>
@@ -100,7 +118,7 @@ export function DeanDashboard({
               className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <LogOut className="w-5 h-5" />
-              Logout
+              <span>Logout</span>
             </button>
           </div>
         </div>

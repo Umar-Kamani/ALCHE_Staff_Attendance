@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { User, Employee, AttendanceRecord, ParkingConfig } from '../App';
-import { LogOut, UserPlus, Download, Calendar, Filter, Building2 } from 'lucide-react';
+import { LogOut, UserPlus, Download, Calendar, Filter, Building2, BarChart3 } from 'lucide-react';
 import { EmployeeManagement } from './EmployeeManagement';
 import { AttendanceReports } from './AttendanceReports';
+import { HRAnalytics } from './HRAnalytics';
 import logo from 'figma:asset/8cb4e74c943326f982bc5bf90d14623946c7755b.png';
 
 interface HRDashboardProps {
@@ -12,6 +13,8 @@ interface HRDashboardProps {
   parkingConfig: ParkingConfig;
   onLogout: () => void;
   onAddEmployee: (employee: Employee) => void;
+  onDeleteEmployee: (employeeId: string) => void;
+  onUpdateEmployee: (employee: Employee) => void;
   onUpdateAttendance: (record: AttendanceRecord) => void;
   onDeleteAttendance: (id: string) => void;
 }
@@ -23,10 +26,12 @@ export function HRDashboard({
   parkingConfig,
   onLogout,
   onAddEmployee,
+  onDeleteEmployee,
+  onUpdateEmployee,
   onUpdateAttendance,
   onDeleteAttendance,
 }: HRDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'employees' | 'reports'>('employees');
+  const [activeTab, setActiveTab] = useState<'employees' | 'reports' | 'analytics'>('employees');
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportStartDate, setExportStartDate] = useState('');
   const [exportEndDate, setExportEndDate] = useState('');
@@ -42,9 +47,8 @@ export function HRDashboard({
     }
 
     // Create CSV content
-    const headers = ['Employee ID', 'Name', 'Date', 'Time In', 'Time Out', 'Plate Number', 'Type'];
+    const headers = ['Name', 'Date', 'Time In', 'Time Out', 'Plate Number', 'Type'];
     const rows = recordsToExport.map(record => [
-      record.employeeId,
       record.employeeName,
       record.date,
       record.timeIn,
@@ -96,29 +100,57 @@ export function HRDashboard({
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={logo} alt="VUCUE" className="h-12" />
-              <div>
-                <h1 className="text-gray-900">HR Dashboard</h1>
-                <p className="text-gray-600">Welcome, {user.username}</p>
+          <div className="flex flex-col gap-3">
+            {/* Mobile: Logo and buttons on first row */}
+            <div className="flex sm:hidden items-center justify-between">
+              <img src={logo} alt="VUCUE" className="h-10" />
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => setShowExportModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#BF2C34] text-white rounded-lg hover:bg-[#8f2127] transition-colors"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowExportModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-[#BF2C34] text-white rounded-lg hover:bg-[#8f2127] transition-colors"
-              >
-                <Download className="w-5 h-5" />
-                Export CSV
-              </button>
-              <button
-                onClick={onLogout}
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-                Logout
-              </button>
+            
+            {/* Mobile: Title and welcome on second row */}
+            <div className="sm:hidden">
+              <h1 className="text-gray-900 text-center text-[24px] font-bold">HR Dashboard</h1>
+              <p className="text-gray-600 text-center">Welcome, {user.username}</p>
+            </div>
+
+            {/* Desktop: Original layout */}
+            <div className="hidden sm:flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img src={logo} alt="VUCUE" className="h-12" />
+                <div>
+                  <h1 className="text-gray-900">HR Dashboard</h1>
+                  <p className="text-gray-600">Welcome, {user.username}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => setShowExportModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#BF2C34] text-white rounded-lg hover:bg-[#8f2127] transition-colors"
+                >
+                  <Download className="w-5 h-5" />
+                  <span>Export CSV</span>
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Logout</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -246,19 +278,35 @@ export function HRDashboard({
                 <Calendar className="w-5 h-5" />
                 Attendance Reports
               </button>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors ${
+                  activeTab === 'analytics'
+                    ? 'border-[#002E6D] text-[#002E6D]'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <BarChart3 className="w-5 h-5" />
+                HR Analytics
+              </button>
             </div>
           </div>
         </div>
 
         {/* Content */}
         {activeTab === 'employees' ? (
-          <EmployeeManagement employees={employees} onAddEmployee={onAddEmployee} />
-        ) : (
+          <EmployeeManagement employees={employees} onAddEmployee={onAddEmployee} onDeleteEmployee={onDeleteEmployee} onUpdateEmployee={onUpdateEmployee} />
+        ) : activeTab === 'reports' ? (
           <AttendanceReports
             attendanceRecords={attendanceRecords}
             employees={employees}
             onUpdateAttendance={onUpdateAttendance}
             onDeleteAttendance={onDeleteAttendance}
+          />
+        ) : (
+          <HRAnalytics
+            attendanceRecords={attendanceRecords}
+            employees={employees}
           />
         )}
       </div>

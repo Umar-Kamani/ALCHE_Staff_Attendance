@@ -125,27 +125,28 @@ export function SuperAdminDashboard({
       {/* Header */}
       <header className="bg-gradient-to-r from-[#002E6D] to-[#001d45] shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <img src={logo} alt="VUCUE" className="h-12" />
+              <img src={logo} alt="VUCUE" className="h-10 sm:h-12" />
               <div>
                 <h1 className="text-white">Super Admin Dashboard</h1>
                 <p className="text-blue-100">Welcome, {user.username}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <div className="bg-white bg-opacity-20 px-4 py-2 rounded-lg">
-                <span className="text-[rgb(0,0,0)] flex items-center gap-2">
+                <span className="text-white flex items-center gap-2">
                   <Shield className="w-5 h-5" />
-                  Super Administrator
+                  <span className="hidden sm:inline">Super Administrator</span>
+                  <span className="sm:hidden">Admin</span>
                 </span>
               </div>
               <button
                 onClick={onLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-10 text-[rgb(0,0,0)] hover:bg-opacity-20 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-10 text-white hover:bg-opacity-20 rounded-lg transition-colors"
               >
                 <LogOut className="w-5 h-5" />
-                Logout
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>

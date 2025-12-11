@@ -36,21 +36,41 @@ export function SecurityGuardDashboard({
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src={logo} alt="VUCUE" className="h-12" />
-              <div>
-                <h1 className="text-gray-900">Security Guard Dashboard</h1>
-                <p className="text-gray-600">Welcome, {user.username}</p>
-              </div>
+          <div className="flex flex-col gap-3">
+            {/* Mobile: Logo and logout on first row */}
+            <div className="flex sm:hidden items-center justify-between">
+              <img src={logo} alt="VUCUE" className="h-10" />
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
-            <button
-              onClick={onLogout}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <LogOut className="w-5 h-5" />
-              Logout
-            </button>
+            
+            {/* Mobile: Title and welcome on second row */}
+            <div className="sm:hidden">
+              <h1 className="text-gray-900 text-center text-[24px] font-bold">Security Guard Dashboard</h1>
+              <p className="text-gray-600 text-center">Welcome, {user.username}</p>
+            </div>
+
+            {/* Desktop: Original layout */}
+            <div className="hidden sm:flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img src={logo} alt="VUCUE" className="h-12" />
+                <div>
+                  <h1 className="text-gray-900">Security Guard Dashboard</h1>
+                  <p className="text-gray-600">Welcome, {user.username}</p>
+                </div>
+              </div>
+              <button
+                onClick={onLogout}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -116,31 +136,31 @@ export function SecurityGuardDashboard({
           <div className="lg:col-span-2 space-y-6">
             {/* Tabs */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="border-b border-gray-200">
-                <div className="flex">
+              <div className="border-b border-gray-200 overflow-x-auto">
+                <div className="flex min-w-max">
                   <button
                     onClick={() => setActiveTab('entry')}
-                    className={`flex-1 px-6 py-4 border-b-2 transition-colors ${
+                    className={`flex-1 px-4 sm:px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
                       activeTab === 'entry'
                         ? 'border-[#002E6D] text-[#002E6D]'
                         : 'border-transparent text-gray-600 hover:text-gray-900'
                     }`}
                   >
-                    Mark Entry
+                    Staff Entry
                   </button>
                   <button
                     onClick={() => setActiveTab('exit')}
-                    className={`flex-1 px-6 py-4 border-b-2 transition-colors ${
+                    className={`flex-1 px-4 sm:px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
                       activeTab === 'exit'
                         ? 'border-[#002E6D] text-[#002E6D]'
                         : 'border-transparent text-gray-600 hover:text-gray-900'
                     }`}
                   >
-                    Mark Exit
+                    Staff Exit
                   </button>
                   <button
                     onClick={() => setActiveTab('guest')}
-                    className={`flex-1 px-6 py-4 border-b-2 transition-colors ${
+                    className={`flex-1 px-4 sm:px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
                       activeTab === 'guest'
                         ? 'border-[#002E6D] text-[#002E6D]'
                         : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -150,7 +170,7 @@ export function SecurityGuardDashboard({
                   </button>
                   <button
                     onClick={() => setActiveTab('guestExit')}
-                    className={`flex-1 px-6 py-4 border-b-2 transition-colors ${
+                    className={`flex-1 px-4 sm:px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
                       activeTab === 'guestExit'
                         ? 'border-[#002E6D] text-[#002E6D]'
                         : 'border-transparent text-gray-600 hover:text-gray-900'
