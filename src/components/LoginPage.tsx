@@ -83,9 +83,6 @@ export function LoginPage({ onLogin, users }: LoginPageProps) {
           </button>
         </form>
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        </div>
-
         {/* Credits */}
         <div className="mt-6 pt-6 border-t border-gray-200 text-center">
           <p className="text-gray-600">Made by ALCHE Tech Team</p>
