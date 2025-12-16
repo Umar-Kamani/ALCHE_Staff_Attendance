@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { User, Employee, AttendanceRecord, ParkingConfig, AccessLog, APP_VERSION } from '../App';
-import { LogOut, Shield, Users, Key, UserPlus, Trash2, Calendar, Activity } from 'lucide-react';
+import { User, Employee, AttendanceRecord, ParkingConfig, AccessLog, UserLog, APP_VERSION } from '../App';
+import { LogOut, Shield, Users, Key, UserPlus, Trash2, Calendar, Activity, FileText } from 'lucide-react';
 import { AccessLogs } from './AccessLogs';
+import { UserLogs } from './UserLogs';
 import logo from 'figma:asset/8cb4e74c943326f982bc5bf90d14623946c7755b.png';
 
 interface SuperAdminDashboardProps {
@@ -11,6 +12,7 @@ interface SuperAdminDashboardProps {
   attendanceRecords: AttendanceRecord[];
   parkingConfig: ParkingConfig;
   accessLogs: AccessLog[];
+  userLogs: UserLog[];
   onLogout: () => void;
   onAddUser: (user: User) => void;
   onUpdateUser: (user: User) => void;
@@ -24,12 +26,13 @@ export function SuperAdminDashboard({
   attendanceRecords,
   parkingConfig,
   accessLogs,
+  userLogs,
   onLogout,
   onAddUser,
   onUpdateUser,
   onDeleteUser,
 }: SuperAdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'users' | 'logs'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'logs' | 'userLogs'>('users');
   const [showCreateUserForm, setShowCreateUserForm] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [selectedUserForReset, setSelectedUserForReset] = useState<User | null>(null);
@@ -134,19 +137,19 @@ export function SuperAdminDashboard({
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="bg-white bg-opacity-20 px-4 py-2 rounded-lg">
-                <span className="text-white flex items-center gap-2">
+              <div className="bg-[rgb(255,255,255)] bg-opacity-20 px-4 py-2 rounded-lg">
+                <span className="text-[rgb(0,0,0)] flex items-center gap-2">
                   <Shield className="w-5 h-5" />
-                  <span className="hidden sm:inline">Super Administrator</span>
+                  <span className="hidden sm:inline text-[rgb(0,0,0)]">Super Administrator</span>
                   <span className="sm:hidden">Admin</span>
                 </span>
               </div>
               <button
                 onClick={onLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-10 text-white hover:bg-opacity-20 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-10 text-[rgb(0,0,0)] hover:bg-opacity-20 rounded-lg transition-colors"
               >
                 <LogOut className="w-5 h-5" />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="hidden sm:inline text-[rgb(0,0,0)]">Logout</span>
               </button>
             </div>
           </div>
@@ -225,6 +228,15 @@ export function SuperAdminDashboard({
             >
               <Activity className="w-5 h-5" />
               Access Logs
+            </button>
+            <button
+              onClick={() => setActiveTab('userLogs')}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg hover:bg-[#001d45] transition-colors shadow-sm ${
+                activeTab === 'userLogs' ? 'bg-[#002E6D] text-white' : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              <FileText className="w-5 h-5" />
+              User Logs
             </button>
           </div>
         </div>
@@ -343,7 +355,7 @@ export function SuperAdminDashboard({
                       <tr key={u.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-gray-900">{u.username}</td>
                         <td className="px-6 py-4">
-                          <span className="px-3 py-1 bg-[#002E6D] bg-opacity-10 text-[rgb(255,255,255)] rounded-full">
+                          <span className="px-3 py-1 bg-[#002E6D] text-white rounded-full">
                             Super Admin
                           </span>
                         </td>
@@ -447,7 +459,7 @@ export function SuperAdminDashboard({
                         <tr key={u.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 text-gray-900">{u.username}</td>
                           <td className="px-6 py-4">
-                            <span className="px-3 py-1 bg-[#BF2C34] bg-opacity-10 text-[rgb(255,255,255)] rounded-full">
+                            <span className="px-3 py-1 bg-[#BF2C34] text-white rounded-full">
                               HR
                             </span>
                           </td>
@@ -504,7 +516,7 @@ export function SuperAdminDashboard({
                         <tr key={u.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 text-gray-900">{u.username}</td>
                           <td className="px-6 py-4">
-                            <span className="px-3 py-1 bg-[#FFA500] bg-opacity-10 text-[rgb(255,255,255)] rounded-full">
+                            <span className="px-3 py-1 bg-[#FFA500] text-white rounded-full">
                               Dean
                             </span>
                           </td>
@@ -539,6 +551,11 @@ export function SuperAdminDashboard({
         {/* Access Logs */}
         {activeTab === 'logs' && (
           <AccessLogs accessLogs={accessLogs} />
+        )}
+
+        {/* User Logs */}
+        {activeTab === 'userLogs' && (
+          <UserLogs userLogs={userLogs} />
         )}
 
         {/* Footer */}

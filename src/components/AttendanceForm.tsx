@@ -108,6 +108,29 @@ export function AttendanceForm({
     setSelectedEmployees(updated);
   };
 
+  const handleInputFocus = (index: number) => {
+    const updated = [...selectedEmployees];
+    updated[index] = {
+      ...updated[index],
+      showDropdown: true,
+    };
+    setSelectedEmployees(updated);
+  };
+
+  const handleInputBlur = (index: number) => {
+    // Delay to allow click on dropdown item
+    setTimeout(() => {
+      const updated = [...selectedEmployees];
+      if (updated[index]) {
+        updated[index] = {
+          ...updated[index],
+          showDropdown: false,
+        };
+        setSelectedEmployees(updated);
+      }
+    }, 200);
+  };
+
   const handleToggleCar = (index: number) => {
     const updated = [...selectedEmployees];
     updated[index] = {
@@ -507,6 +530,8 @@ export function AttendanceForm({
                         id={`employee-${index}`}
                         value={se.searchTerm}
                         onChange={(e) => handleSearchChange(index, e.target.value)}
+                        onFocus={() => handleInputFocus(index)}
+                        onBlur={() => handleInputBlur(index)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Choose an employee..."
                         required
@@ -517,7 +542,10 @@ export function AttendanceForm({
                             <div
                               key={emp.id}
                               className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                              onClick={() => handleEmployeeSelect(index, emp)}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleEmployeeSelect(index, emp);
+                              }}
                             >
                               {emp.name} {emp.defaultPlateNumber ? `- ${emp.defaultPlateNumber}` : ''}
                             </div>

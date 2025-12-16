@@ -6,7 +6,7 @@ import { SuperAdminDashboard } from './components/SuperAdminDashboard';
 import { DeanDashboard } from './components/DeanDashboard';
 
 // App version
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.2.0';
 
 export interface Employee {
   id: string;
@@ -46,6 +46,16 @@ export interface AccessLog {
   timestamp: string;
 }
 
+export interface UserLog {
+  id: string;
+  userId: string;
+  username: string;
+  role: string;
+  action: string;
+  details: string;
+  timestamp: string;
+}
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -53,6 +63,7 @@ export default function App() {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [parkingConfig, setParkingConfig] = useState<ParkingConfig>({ totalSpaces: 50, occupiedSpaces: 0 });
   const [accessLogs, setAccessLogs] = useState<AccessLog[]>([]);
+  const [userLogs, setUserLogs] = useState<UserLog[]>([]);
 
   // Initialize default super admin and demo users
   useEffect(() => {
@@ -91,12 +102,14 @@ export default function App() {
     const savedParking = localStorage.getItem('parkingConfig');
     const savedUser = localStorage.getItem('currentUser');
     const savedAccessLogs = localStorage.getItem('accessLogs');
+    const savedUserLogs = localStorage.getItem('userLogs');
 
     if (savedEmployees) setEmployees(JSON.parse(savedEmployees));
     if (savedAttendance) setAttendanceRecords(JSON.parse(savedAttendance));
     if (savedParking) setParkingConfig(JSON.parse(savedParking));
     if (savedUser) setCurrentUser(JSON.parse(savedUser));
     if (savedAccessLogs) setAccessLogs(JSON.parse(savedAccessLogs));
+    if (savedUserLogs) setUserLogs(JSON.parse(savedUserLogs));
   }, []);
 
   // Save data to localStorage whenever it changes
@@ -127,6 +140,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('accessLogs', JSON.stringify(accessLogs));
   }, [accessLogs]);
+
+  useEffect(() => {
+    localStorage.setItem('userLogs', JSON.stringify(userLogs));
+  }, [userLogs]);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
@@ -213,6 +230,81 @@ export default function App() {
     setParkingConfig(config);
   };
 
+  const addLog = (action: string, details: string) => {
+    if (currentUser) {
+      const newLog: UserLog = {
+        id: Date.now().toString() + Math.random(),
+        userId: currentUser.id!,
+        username: currentUser.username,
+        role: currentUser.role,
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+      };
+      setUserLogs([...userLogs, newLog]);
+    }
+  };
+
+  const addEmployeeWithLog = (employee: Employee) => {
+    addEmployee(employee);
+    addLog('Create Employee', `Created employee: ${employee.name}`);
+  };
+
+  const deleteEmployeeWithLog = (employeeId: string) => {
+    const emp = employees.find(e => e.id === employeeId);
+    deleteEmployee(employeeId);
+    if (emp) {
+      addLog('Delete Employee', `Deleted employee: ${emp.name}`);
+    }
+  };
+
+  const updateEmployeeWithLog = (updatedEmployee: Employee) => {
+    updateEmployee(updatedEmployee);
+    addLog('Update Employee', `Updated employee: ${updatedEmployee.name}`);
+  };
+
+  const addUserWithLog = (user: User) => {
+    addUser(user);
+    addLog('Create User', `Created ${user.role} user: ${user.username}`);
+  };
+
+  const updateUserWithLog = (updatedUser: User) => {
+    updateUser(updatedUser);
+    addLog('Reset Password', `Reset password for user: ${updatedUser.username}`);
+  };
+
+  const deleteUserWithLog = (userId: string) => {
+    const usr = users.find(u => u.id === userId);
+    deleteUser(userId);
+    if (usr) {
+      addLog('Delete User', `Deleted user: ${usr.username} (${usr.role})`);
+    }
+  };
+
+  const updateAttendanceWithLog = (record: AttendanceRecord) => {
+    const existingRecord = attendanceRecords.find(r => r.id === record.id);
+    updateAttendance(record);
+    
+    if (existingRecord) {
+      // Check what was updated
+      if (existingRecord.timeOut === null && record.timeOut !== null) {
+        addLog('Mark Exit', `Marked exit for ${record.isGuest ? 'guest' : 'staff'}: ${record.employeeName}`);
+      } else if (!existingRecord.timeOut && !record.timeOut) {
+        addLog('Update Attendance', `Updated attendance record for: ${record.employeeName}`);
+      }
+    } else {
+      addLog('Mark Entry', `Marked entry for ${record.isGuest ? 'guest' : 'staff'}: ${record.employeeName}`);
+    }
+  };
+
+  const deleteAttendanceRecordWithLog = (id: string) => {
+    const record = attendanceRecords.find(r => r.id === id);
+    deleteAttendanceRecord(id);
+    if (record) {
+      addLog('Delete Attendance', `Deleted attendance record for: ${record.employeeName} (${record.date})`);
+    }
+  };
+
   if (!currentUser) {
     return <LoginPage onLogin={handleLogin} users={users} />;
   }
@@ -226,10 +318,11 @@ export default function App() {
         attendanceRecords={attendanceRecords}
         parkingConfig={parkingConfig}
         accessLogs={accessLogs}
+        userLogs={userLogs}
         onLogout={handleLogout}
-        onAddUser={addUser}
-        onUpdateUser={updateUser}
-        onDeleteUser={deleteUser}
+        onAddUser={addUserWithLog}
+        onUpdateUser={updateUserWithLog}
+        onDeleteUser={deleteUserWithLog}
       />
     );
   }
@@ -242,7 +335,7 @@ export default function App() {
         attendanceRecords={attendanceRecords}
         parkingConfig={parkingConfig}
         onLogout={handleLogout}
-        onUpdateAttendance={updateAttendance}
+        onUpdateAttendance={updateAttendanceWithLog}
         onUpdateParkingConfig={updateParkingConfig}
       />
     );
@@ -267,11 +360,12 @@ export default function App() {
       attendanceRecords={attendanceRecords}
       parkingConfig={parkingConfig}
       onLogout={handleLogout}
-      onAddEmployee={addEmployee}
-      onDeleteEmployee={deleteEmployee}
-      onUpdateEmployee={updateEmployee}
-      onUpdateAttendance={updateAttendance}
-      onDeleteAttendance={deleteAttendanceRecord}
+      onAddEmployee={addEmployeeWithLog}
+      onDeleteEmployee={deleteEmployeeWithLog}
+      onUpdateEmployee={updateEmployeeWithLog}
+      onUpdateAttendance={updateAttendanceWithLog}
+      onDeleteAttendance={deleteAttendanceRecordWithLog}
+      onUpdateParkingConfig={updateParkingConfig}
     />
   );
 }

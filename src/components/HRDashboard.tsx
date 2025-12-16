@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { User, Employee, AttendanceRecord, ParkingConfig } from '../App';
-import { LogOut, UserPlus, Download, Calendar, Filter, Building2, BarChart3 } from 'lucide-react';
+import { LogOut, UserPlus, Download, Calendar, Filter, Building2, BarChart3, ClipboardCheck } from 'lucide-react';
 import { EmployeeManagement } from './EmployeeManagement';
 import { AttendanceReports } from './AttendanceReports';
 import { HRAnalytics } from './HRAnalytics';
+import { HRAttendanceMarking } from './HRAttendanceMarking';
 import logo from 'figma:asset/8cb4e74c943326f982bc5bf90d14623946c7755b.png';
 
 interface HRDashboardProps {
@@ -17,6 +18,7 @@ interface HRDashboardProps {
   onUpdateEmployee: (employee: Employee) => void;
   onUpdateAttendance: (record: AttendanceRecord) => void;
   onDeleteAttendance: (id: string) => void;
+  onUpdateParkingConfig: (config: ParkingConfig) => void;
 }
 
 export function HRDashboard({
@@ -30,8 +32,9 @@ export function HRDashboard({
   onUpdateEmployee,
   onUpdateAttendance,
   onDeleteAttendance,
+  onUpdateParkingConfig,
 }: HRDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'employees' | 'reports' | 'analytics'>('employees');
+  const [activeTab, setActiveTab] = useState<'employees' | 'reports' | 'analytics' | 'attendance'>('employees');
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportStartDate, setExportStartDate] = useState('');
   const [exportEndDate, setExportEndDate] = useState('');
@@ -255,10 +258,21 @@ export function HRDashboard({
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="border-b border-gray-200">
-            <div className="flex">
+            <div className="flex overflow-x-auto">
+              <button
+                onClick={() => setActiveTab('attendance')}
+                className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === 'attendance'
+                    ? 'border-[#002E6D] text-[#002E6D]'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <ClipboardCheck className="w-5 h-5" />
+                Mark Attendance
+              </button>
               <button
                 onClick={() => setActiveTab('employees')}
-                className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors ${
+                className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === 'employees'
                     ? 'border-[#002E6D] text-[#002E6D]'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -269,7 +283,7 @@ export function HRDashboard({
               </button>
               <button
                 onClick={() => setActiveTab('reports')}
-                className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors ${
+                className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === 'reports'
                     ? 'border-[#002E6D] text-[#002E6D]'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -280,7 +294,7 @@ export function HRDashboard({
               </button>
               <button
                 onClick={() => setActiveTab('analytics')}
-                className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors ${
+                className={`flex items-center gap-2 px-6 py-4 border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === 'analytics'
                     ? 'border-[#002E6D] text-[#002E6D]'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -294,7 +308,15 @@ export function HRDashboard({
         </div>
 
         {/* Content */}
-        {activeTab === 'employees' ? (
+        {activeTab === 'attendance' ? (
+          <HRAttendanceMarking
+            employees={employees}
+            attendanceRecords={attendanceRecords}
+            parkingConfig={parkingConfig}
+            onUpdateAttendance={onUpdateAttendance}
+            onUpdateParkingConfig={onUpdateParkingConfig}
+          />
+        ) : activeTab === 'employees' ? (
           <EmployeeManagement employees={employees} onAddEmployee={onAddEmployee} onDeleteEmployee={onDeleteEmployee} onUpdateEmployee={onUpdateEmployee} />
         ) : activeTab === 'reports' ? (
           <AttendanceReports

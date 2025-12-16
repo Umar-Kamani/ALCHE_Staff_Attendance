@@ -68,6 +68,7 @@
     --color-red-800: oklch(.444 .177 26.899);
     --color-orange-100: oklch(.954 .038 75.164);
     --color-orange-600: oklch(.646 .222 41.116);
+    --color-orange-700: oklch(.553 .195 38.402);
     --color-yellow-50: oklch(.987 .026 102.212);
     --color-yellow-100: oklch(.973 .071 103.193);
     --color-yellow-200: oklch(.945 .129 101.54);
@@ -833,6 +834,10 @@
     background-color: #002e6d;
   }
 
+  .bg-\[rgb\(255\,255\,255\)\] {
+    background-color: #fff;
+  }
+
   .bg-black {
     background-color: var(--color-black);
   }
@@ -1045,6 +1050,10 @@
     color: orange;
   }
 
+  .text-\[rgb\(0\,0\,0\)\] {
+    color: #000;
+  }
+
   .text-\[rgb\(255\,255\,255\)\] {
     color: #fff;
   }
@@ -1103,6 +1112,10 @@
 
   .text-orange-600 {
     color: var(--color-orange-600);
+  }
+
+  .text-orange-700 {
+    color: var(--color-orange-700);
   }
 
   .text-purple-600 {

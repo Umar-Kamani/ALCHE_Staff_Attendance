@@ -152,7 +152,7 @@ export function AttendanceReports({
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
                           record.isGuest
-                            ? 'bg-[#BF2C34] bg-opacity-10 text-[#BF2C34]'
+                            ? 'bg-[#BF2C34] text-white'
                             : 'bg-[#002E6D] text-white'
                         }`}
                       >

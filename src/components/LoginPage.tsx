@@ -84,13 +84,6 @@ export function LoginPage({ onLogin, users }: LoginPageProps) {
         </form>
 
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 mb-2">Demo Credentials:</p>
-          <div className="space-y-1">
-            <p className="text-gray-700">Super Admin: admin / admin123</p>
-            <p className="text-gray-700">Security: security / security123</p>
-            <p className="text-gray-700">HR: hr / hr123</p>
-            <p className="text-gray-700">Dean: dean / dean123</p>
-          </div>
         </div>
 
         {/* Credits */}
