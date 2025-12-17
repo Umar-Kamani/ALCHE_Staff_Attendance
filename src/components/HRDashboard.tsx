@@ -14,6 +14,7 @@ interface HRDashboardProps {
   parkingConfig: ParkingConfig;
   onLogout: () => void;
   onAddEmployee: (employee: Employee) => void;
+  onAddEmployees?: (employees: Employee[]) => void;
   onDeleteEmployee: (employeeId: string) => void;
   onUpdateEmployee: (employee: Employee) => void;
   onUpdateAttendance: (record: AttendanceRecord) => void;
@@ -28,6 +29,7 @@ export function HRDashboard({
   parkingConfig,
   onLogout,
   onAddEmployee,
+  onAddEmployees,
   onDeleteEmployee,
   onUpdateEmployee,
   onUpdateAttendance,
@@ -317,7 +319,7 @@ export function HRDashboard({
             onUpdateParkingConfig={onUpdateParkingConfig}
           />
         ) : activeTab === 'employees' ? (
-          <EmployeeManagement employees={employees} onAddEmployee={onAddEmployee} onDeleteEmployee={onDeleteEmployee} onUpdateEmployee={onUpdateEmployee} />
+          <EmployeeManagement employees={employees} onAddEmployee={onAddEmployee} onAddEmployees={onAddEmployees} onDeleteEmployee={onDeleteEmployee} onUpdateEmployee={onUpdateEmployee} />
         ) : activeTab === 'reports' ? (
           <AttendanceReports
             attendanceRecords={attendanceRecords}

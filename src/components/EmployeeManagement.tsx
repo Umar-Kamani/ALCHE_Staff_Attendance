@@ -5,11 +5,12 @@ import { UserPlus, Users, Search, Upload, Trash2, Edit2 } from 'lucide-react';
 interface EmployeeManagementProps {
   employees: Employee[];
   onAddEmployee: (employee: Employee) => void;
+  onAddEmployees?: (employees: Employee[]) => void;
   onDeleteEmployee: (employeeId: string) => void;
   onUpdateEmployee: (employee: Employee) => void;
 }
 
-export function EmployeeManagement({ employees, onAddEmployee, onDeleteEmployee, onUpdateEmployee }: EmployeeManagementProps) {
+export function EmployeeManagement({ employees, onAddEmployee, onAddEmployees, onDeleteEmployee, onUpdateEmployee }: EmployeeManagementProps) {
   const [showForm, setShowForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -56,13 +57,14 @@ export function EmployeeManagement({ employees, onAddEmployee, onDeleteEmployee,
       const dataLines = lines.slice(1);
       let importedCount = 0;
       let skippedCount = 0;
+      const newEmployees: Employee[] = [];
 
-      dataLines.forEach(line => {
+      dataLines.forEach((line, index) => {
         if (!line.trim()) return;
 
-        const [empName, empEmail, empPlate] = line.split(',').map(s => s.trim().replace(/^"|"$/g, ''));
+        const [empName, empEmail, empPlate] = line.split(',').map(s => s.trim().replace(/^\"|\"$/g, ''));
         
-        // Skip if employee ID already exists
+        // Skip if employee name already exists
         if (employees.some(emp => emp.name === empName)) {
           skippedCount++;
           return;
@@ -70,15 +72,22 @@ export function EmployeeManagement({ employees, onAddEmployee, onDeleteEmployee,
 
         if (empName) {
           const newEmployee: Employee = {
-            id: `emp-${Date.now()}-${importedCount}`,
+            id: `emp-${Date.now()}-${index}`,
             name: empName,
             email: empEmail || undefined,
             defaultPlateNumber: empPlate || undefined,
           };
-          onAddEmployee(newEmployee);
+          newEmployees.push(newEmployee);
           importedCount++;
         }
       });
+
+      // Add all employees at once
+      if (onAddEmployees) {
+        onAddEmployees(newEmployees);
+      } else {
+        newEmployees.forEach(emp => onAddEmployee(emp));
+      }
 
       alert(`Import complete!\nImported: ${importedCount} employees\nSkipped (duplicates): ${skippedCount} employees`);
       setShowBulkImport(false);

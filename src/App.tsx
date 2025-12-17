@@ -6,7 +6,7 @@ import { SuperAdminDashboard } from './components/SuperAdminDashboard';
 import { DeanDashboard } from './components/DeanDashboard';
 
 // App version
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.2.1';
 
 export interface Employee {
   id: string;
@@ -175,6 +175,10 @@ export default function App() {
     setEmployees([...employees, employee]);
   };
 
+  const addEmployees = (newEmployees: Employee[]) => {
+    setEmployees([...employees, ...newEmployees]);
+  };
+
   const deleteEmployee = (employeeId: string) => {
     setEmployees(employees.filter(e => e.id !== employeeId));
   };
@@ -248,6 +252,11 @@ export default function App() {
   const addEmployeeWithLog = (employee: Employee) => {
     addEmployee(employee);
     addLog('Create Employee', `Created employee: ${employee.name}`);
+  };
+
+  const addEmployeesWithLog = (newEmployees: Employee[]) => {
+    addEmployees(newEmployees);
+    addLog('Bulk Import', `Imported ${newEmployees.length} employees`);
   };
 
   const deleteEmployeeWithLog = (employeeId: string) => {
@@ -361,6 +370,7 @@ export default function App() {
       parkingConfig={parkingConfig}
       onLogout={handleLogout}
       onAddEmployee={addEmployeeWithLog}
+      onAddEmployees={addEmployeesWithLog}
       onDeleteEmployee={deleteEmployeeWithLog}
       onUpdateEmployee={updateEmployeeWithLog}
       onUpdateAttendance={updateAttendanceWithLog}
